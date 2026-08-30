@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Two independent Node.js pieces that together show Claude Code's `/usage` quota (session/week) on a Stream Deck / StreamDock-based device:
 
 1. **`poller/`** — a dependency-free Node HTTP server that shells out to `claude -p "/usage" --output-format json` on an interval and exposes the parsed result at `http://127.0.0.1:4756/usage`.
-2. **`streamdock-plugin/com.mlangdev.claudeusage.sdPlugin/`** — a plugin for **StreamDock** (the SDK behind Elgato Stream Deck and clones like Redragon Stream Station / Mirabox) that polls the poller's HTTP endpoint and renders the result on physical keys.
+2. **`streamdock-plugin/com.mlangdev.claudeusage.sdPlugin/`** — a plugin for **StreamDock** (the SDK behind Elgato Stream Deck and other brands like Redragon Stream Station / Mirabox) that polls the poller's HTTP endpoint and renders the result on physical keys.
 
 `claude -p "/usage" --output-format json` is free (0 tokens, 0 turns) — it's a status query, not a model call, so the poller can hit it on a short interval without cost concerns.
 

@@ -1,14 +1,17 @@
 # claude-usage-deck
 
-Mostra quanto falta da sua cota de uso do [Claude Code](https://claude.com/claude-code) (sessão atual e semana do plano Pro/Max) direto num botão de Stream Deck / Stream Dock — incluindo os clones baratos (Redragon, Mirabox, etc.) que rodam o software **StreamDock**.
+🇧🇷 Português | [🇬🇧 English](README.en.md)
+
+Mostra quanto falta da sua cota de uso do [Claude Code](https://claude.com/claude-code) (sessão atual e semana do plano Pro/Max) direto num botão de Stream Deck / Stream Dock — incluindo outras marcas (Redragon, Mirabox, etc.) que rodam o software **StreamDock**.
 
 O projeto tem duas partes:
 
 1. **`poller/`** — um serviço Node.js local, sem dependências, que roda `claude -p "/usage" --output-format json` periodicamente e expõe o resultado (já interpretado) num endpoint HTTP local. Essa chamada é gratuita: não gasta tokens nem conta como uma mensagem, é só uma consulta de status.
-2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por vários clones — Redragon Stream Station, Mirabox, etc.) com três teclas:
+2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por várias outras marcas — Redragon Stream Station, Mirabox, etc.) com quatro teclas:
    - **Claude Usage** — gauge circular com o percentual usado (sessão ou semana), cores terracota/âmbar/vermelho conforme o consumo, e um alerta visual (`showAlert`) disparado automaticamente ao cruzar 90%.
    - **Claude Reset Countdown** — quanto tempo falta para a cota escolhida (sessão ou semana) resetar.
    - **Claude Stats** — quantos requests e sessões o Claude Code teve nas últimas 24h ou 7 dias.
+   - **Claude Reset Day** — em qual dia da semana (e data) a cota escolhida (sessão ou semana) vai resetar.
 
 > Este NÃO é um plugin oficial da Elgato nem da Anthropic. É uma ferramenta community-made que só lê a saída pública do comando `/usage` do Claude Code CLI.
 
@@ -31,7 +34,7 @@ claude -p "/usage" --output-format json   (a cada N minutos)
 
 - [Claude Code CLI](https://claude.com/claude-code) instalado e autenticado (`claude` precisa funcionar no terminal).
 - Node.js 18+.
-- Um Stream Deck (Elgato) ou um clone que rode o software **StreamDock** (procure por uma pasta `plugins` dentro da instalação do seu app — se tiver arquivos `.sdPlugin`, é esse SDK).
+- Um Stream Deck (Elgato) ou um dispositivo de outra marca que rode o software **StreamDock** (procure por uma pasta `plugins` dentro da instalação do seu app — se tiver arquivos `.sdPlugin`, é esse SDK).
 
 ## 1. Rodar o poller
 
@@ -89,12 +92,13 @@ O jeito mais simples no Windows é criar um atalho que rode `npm start` dentro d
 
 3. Reinicie o app do Stream Deck/Stream Dock.
 
-4. Procure a categoria **"Claude Usage"** na lista de ações — tem três teclas disponíveis (Claude Usage, Claude Reset Countdown, Claude Stats). Arraste as que quiser pro seu painel.
+4. Procure a categoria **"Claude Usage"** na lista de ações — tem quatro teclas disponíveis (Claude Usage, Claude Reset Countdown, Claude Stats, Claude Reset Day). Arraste as que quiser pro seu painel.
 
 5. Clique em cada tecla pra abrir o painel de configuração:
    - **Claude Usage**: métrica (sessão/semana), URL do poller, intervalo de atualização.
    - **Claude Reset Countdown**: métrica (sessão/semana), URL do poller, intervalo de atualização.
    - **Claude Stats**: janela (24h/7 dias), URL do poller, intervalo de atualização.
+   - **Claude Reset Day**: métrica (sessão/semana), URL do poller, intervalo de atualização.
 
 Pressionar qualquer uma das teclas força uma atualização imediata (o poller então reconsulta o `claude` CLI na hora).
 
