@@ -68,6 +68,29 @@
       "Tooltip": "Mostra quantos requests/sessoes o Claude Code teve nas ultimas 24h ou 7 dias",
       "UUID": "com.mlangdev.claudeusage.stats",
       "PropertyInspectorPath": "propertyInspector/stats/index.html"
+    },
+    {
+      "Icon": "static/icon.png",
+      "Name": "Claude Reset Day",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "static/icon.png",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "Settings": {
+        "metric": "week",
+        "pollerUrl": "http://127.0.0.1:4756/usage",
+        "refreshSeconds": 300
+      },
+      "Controllers": ["Keypad", "Information"],
+      "UserTitleEnabled": false,
+      "SupportedInMultiActions": false,
+      "Tooltip": "Mostra em qual dia da semana a cota (sessao ou semana) do Claude Code reseta",
+      "UUID": "com.mlangdev.claudeusage.resetday",
+      "PropertyInspectorPath": "propertyInspector/resetday/index.html"
     }
   ],
   "SDKVersion": 1,

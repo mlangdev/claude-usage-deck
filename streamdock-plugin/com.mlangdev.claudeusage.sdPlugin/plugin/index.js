@@ -112,6 +112,20 @@ function buildCountdownSvg(timeText, label) {
     + `</svg>`;
 }
 
+const WEEKDAY_LABELS_PT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+
+function buildResetDaySvg(dayLabel, dateLabel, metricLabel) {
+  const size = 144;
+  const cx = size / 2;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">`
+    + cardBase(size)
+    + `<text x="${cx}" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="34" fill="${CLAUDE.cream}">${dayLabel}</text>`
+    + `<text x="${cx}" y="94" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="15" fill="${CLAUDE.mutedCream}">${dateLabel}</text>`
+    + `<text x="${cx}" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-weight="600" font-size="16" letter-spacing="1.5" fill="${CLAUDE.normal}">${metricLabel}</text>`
+    + `</svg>`;
+}
+
 function buildStatsSvg(requests, sessions, windowLabel) {
   const size = 144;
   const cx = size / 2;
@@ -311,5 +325,48 @@ plugin.stats = new Actions({
   },
   keyUp({ context }) {
     statsPoller.refreshNow(context, Object.assign({}, STATS_DEFAULTS, plugin.stats.data[context]));
+  },
+});
+
+// ---- Acao 4: dia da semana em que a cota reseta ----
+
+const RESETDAY_DEFAULTS = { metric: 'week', pollerUrl: DEFAULT_POLLER_URL, refreshSeconds: 300 };
+
+const resetDayPoller = createPoller(RESETDAY_DEFAULTS, (context, settings, body, err) => {
+  const metricKey = (settings.metric || RESETDAY_DEFAULTS.metric).toLowerCase();
+  const label = METRIC_LABELS[metricKey] || metricKey.toUpperCase();
+
+  if (err || !body) {
+    plugin.setImage(context, svgDataUri(buildResetDaySvg('ERRO', '', label)));
+    return;
+  }
+
+  const metric = pickMetric(body.metrics, metricKey);
+  if (!metric || !metric.resetsAtIso) {
+    plugin.setImage(context, svgDataUri(buildResetDaySvg('N/D', '', label)));
+    if (body.error) log.error('poller reportou erro:', body.error);
+    return;
+  }
+
+  const resetDate = new Date(metric.resetsAtIso);
+  const dayLabel = WEEKDAY_LABELS_PT[resetDate.getDay()];
+  const dateLabel = `${String(resetDate.getDate()).padStart(2, '0')}/${String(resetDate.getMonth() + 1).padStart(2, '0')}`;
+  plugin.setImage(context, svgDataUri(buildResetDaySvg(dayLabel, dateLabel, label)));
+});
+
+plugin.resetday = new Actions({
+  default: RESETDAY_DEFAULTS,
+  _willAppear({ context }) {
+    plugin.setTitle(context, '');
+    resetDayPoller.start(context, plugin.resetday);
+  },
+  _willDisappear({ context }) {
+    resetDayPoller.stop(context);
+  },
+  _didReceiveSettings({ context }) {
+    resetDayPoller.start(context, plugin.resetday);
+  },
+  keyUp({ context }) {
+    resetDayPoller.refreshNow(context, Object.assign({}, RESETDAY_DEFAULTS, plugin.resetday.data[context]));
   },
 });

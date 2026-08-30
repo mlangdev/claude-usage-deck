@@ -27,7 +27,7 @@ const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7,
  */
 function estimateResetDate(resetsAtText, now = new Date()) {
   if (!resetsAtText) return null;
-  const m = resetsAtText.match(/^([A-Za-z]{3})[a-z]*\s+(\d{1,2}),?\s*(\d{1,2}):(\d{2})\s*(am|pm)/i);
+  const m = resetsAtText.match(/^([A-Za-z]{3})[a-z]*\s+(\d{1,2}),?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
   if (!m) return null;
 
   const month = MONTHS[m[1].toLowerCase()];
@@ -36,7 +36,7 @@ function estimateResetDate(resetsAtText, now = new Date()) {
   const day = parseInt(m[2], 10);
   let hour = parseInt(m[3], 10) % 12;
   if (m[5].toLowerCase() === 'pm') hour += 12;
-  const minute = parseInt(m[4], 10);
+  const minute = m[4] ? parseInt(m[4], 10) : 0;
 
   let candidate = new Date(now.getFullYear(), month, day, hour, minute, 0, 0);
   // se a data cair mais de 1 dia no passado, e porque virou o ano
