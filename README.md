@@ -5,7 +5,10 @@ Mostra quanto falta da sua cota de uso do [Claude Code](https://claude.com/claud
 O projeto tem duas partes:
 
 1. **`poller/`** — um serviço Node.js local, sem dependências, que roda `claude -p "/usage" --output-format json` periodicamente e expõe o resultado (já interpretado) num endpoint HTTP local. Essa chamada é gratuita: não gasta tokens nem conta como uma mensagem, é só uma consulta de status.
-2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por vários clones — Redragon Stream Station, Mirabox, etc.) que lê o endpoint do poller e mostra o percentual usado direto na tecla, com uma barra colorida (verde/amarelo/vermelho conforme o consumo).
+2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por vários clones — Redragon Stream Station, Mirabox, etc.) com três teclas:
+   - **Claude Usage** — gauge circular com o percentual usado (sessão ou semana), cores terracota/âmbar/vermelho conforme o consumo, e um alerta visual (`showAlert`) disparado automaticamente ao cruzar 90%.
+   - **Claude Reset Countdown** — quanto tempo falta para a cota escolhida (sessão ou semana) resetar.
+   - **Claude Stats** — quantos requests e sessões o Claude Code teve nas últimas 24h ou 7 dias.
 
 > Este NÃO é um plugin oficial da Elgato nem da Anthropic. É uma ferramenta community-made que só lê a saída pública do comando `/usage` do Claude Code CLI.
 
@@ -86,14 +89,18 @@ O jeito mais simples no Windows é criar um atalho que rode `npm start` dentro d
 
 3. Reinicie o app do Stream Deck/Stream Dock.
 
-4. Procure a ação **"Claude Usage"** na lista de ações (categoria "Claude Usage") e arraste pra uma tecla.
+4. Procure a categoria **"Claude Usage"** na lista de ações — tem três teclas disponíveis (Claude Usage, Claude Reset Countdown, Claude Stats). Arraste as que quiser pro seu painel.
 
-5. Clique na tecla pra abrir o painel de configuração e ajuste se quiser:
-   - **Métrica**: sessão atual ou semana (cota do plano)
-   - **URL do poller**: só muda se você alterou a porta no `.env`
-   - **Intervalo de atualização**: a cada quantos segundos o plugin reconsulta o poller
+5. Clique em cada tecla pra abrir o painel de configuração:
+   - **Claude Usage**: métrica (sessão/semana), URL do poller, intervalo de atualização.
+   - **Claude Reset Countdown**: métrica (sessão/semana), URL do poller, intervalo de atualização.
+   - **Claude Stats**: janela (24h/7 dias), URL do poller, intervalo de atualização.
 
-Pressionar a tecla força uma atualização imediata (o poller então reconsulta o `claude` CLI na hora).
+Pressionar qualquer uma das teclas força uma atualização imediata (o poller então reconsulta o `claude` CLI na hora).
+
+### Sobre o countdown de reset
+
+O texto do `/usage` não traz uma data completa (ex: "Aug 30, 4:09am"), então o poller assume que a hora mostrada está no mesmo fuso horário da máquina onde ele roda. Se você rodar o poller numa máquina/servidor em outro fuso, o countdown vai ficar errado — nesse caso essa tecla não é recomendada (o gauge e o stats continuam corretos, pois não dependem de fuso horário).
 
 ## Limitações conhecidas
 
