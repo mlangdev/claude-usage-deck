@@ -1,0 +1,48 @@
+{
+  "Actions": [
+    {
+      "Icon": "static/icon.png",
+      "Name": "Claude Usage",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "static/icon.png",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "Settings": {
+        "metric": "week",
+        "pollerUrl": "http://127.0.0.1:4756/usage",
+        "refreshSeconds": 20
+      },
+      "Controllers": ["Keypad", "Information"],
+      "UserTitleEnabled": false,
+      "SupportedInMultiActions": false,
+      "Tooltip": "Mostra o consumo do Claude Code (sessao ou semana) lido do poller local",
+      "UUID": "com.mlangdev.claudeusage.usage",
+      "PropertyInspectorPath": "propertyInspector/usage/index.html"
+    }
+  ],
+  "SDKVersion": 1,
+  "Author": "Mauricio Lang",
+  "Name": "Claude Usage",
+  "Icon": "static/icon.png",
+  "CodePathWin": "plugin/index.js",
+  "CodePathMac": "plugin/index.js",
+  "Description": "Mostra quanto falta da cota de uso do Claude Code (sessao/semana) direto no Stream Deck",
+  "Category": "Claude Usage",
+  "CategoryIcon": "static/icon.png",
+  "Version": "1.0.0",
+  "URL": "https://github.com/mlangdev/claude-usage-deck",
+  "OS": [
+    { "Platform": "windows", "MinimumVersion": "7" },
+    { "Platform": "mac", "MinimumVersion": "10.11" }
+  ],
+  "Software": {
+    "MinimumVersion": "3.10.188.226"
+  },
+  "Nodejs": {
+    "Version": "20"
+  }
+}

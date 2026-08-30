@@ -1,0 +1,13 @@
+{
+  "name": "claude-usage-deck-poller",
+  "version": "0.1.0",
+  "description": "Servico local que consulta o /usage do Claude Code CLI e expoe o consumo (sessao/semana) via HTTP para uso em Stream Deck ou outras integracoes.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

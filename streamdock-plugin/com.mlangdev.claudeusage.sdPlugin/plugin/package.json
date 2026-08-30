@@ -1,0 +1,10 @@
+{
+  "name": "claude-usage-deck-plugin",
+  "version": "1.0.0",
+  "description": "Plugin StreamDock que le o poller local do claude-usage-deck e mostra o consumo do Claude Code na tecla.",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

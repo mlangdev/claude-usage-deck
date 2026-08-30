@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Claude Usage - Property Inspector</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #2a2a2a;
+      color: #fff;
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      opacity: 0.8;
+    }
+
+    select, input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      background: #3a3a3a;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #fff;
+    }
+
+    .hint {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+  <label for="metric">Metrica</label>
+  <select id="metric">
+    <option value="week">Semana (cota do plano)</option>
+    <option value="session">Sessao atual</option>
+  </select>
+
+  <label for="pollerUrl">URL do poller</label>
+  <input id="pollerUrl" type="text" placeholder="http://127.0.0.1:4756/usage" />
+  <div class="hint">Endereco onde o claude-usage-deck poller esta rodando.</div>
+
+  <label for="refreshSeconds">Atualizar a cada (segundos)</label>
+  <input id="refreshSeconds" type="number" min="5" step="1" />
+
+  <script>
+    const DEFAULTS = { metric: 'week', pollerUrl: 'http://127.0.0.1:4756/usage', refreshSeconds: 20 };
+
+    let $websocket = null;
+    let $uuid = null;
+    let $context = null;
+    let $settings = Object.assign({}, DEFAULTS);
+    let saveTimer = null;
+
+    function fields() {
+      return {
+        metric: document.getElementById('metric'),
+        pollerUrl: document.getElementById('pollerUrl'),
+        refreshSeconds: document.getElementById('refreshSeconds'),
+      };
+    }
+
+    function applySettingsToForm(settings) {
+      $settings = Object.assign({}, DEFAULTS, settings);
+      const f = fields();
+      f.metric.value = $settings.metric;
+      f.pollerUrl.value = $settings.pollerUrl;
+      f.refreshSeconds.value = $settings.refreshSeconds;
+    }
+
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        if (!$websocket || $websocket.readyState !== WebSocket.OPEN) return;
+        $websocket.send(JSON.stringify({ event: 'setSettings', context: $uuid, payload: $settings }));
+      }, 250);
+    }
+
+    function onFieldChange() {
+      const f = fields();
+      $settings.metric = f.metric.value;
+      $settings.pollerUrl = f.pollerUrl.value.trim() || DEFAULTS.pollerUrl;
+      $settings.refreshSeconds = parseInt(f.refreshSeconds.value, 10) || DEFAULTS.refreshSeconds;
+      scheduleSave();
+    }
+
+    // Ponto de entrada chamado pelo StreamDock ao abrir o Property Inspector.
+    function connectElgatoStreamDeckSocket(port, uuid, registerEvent, appInfoJson, actionInfoJson) {
+      $uuid = uuid;
+      let actionInfo = {};
+      try { actionInfo = JSON.parse(actionInfoJson); } catch (_) {}
+      $context = actionInfo.context || uuid;
+
+      $websocket = new WebSocket('ws://127.0.0.1:' + port);
+      $websocket.onopen = () => $websocket.send(JSON.stringify({ event: registerEvent, uuid }));
+      $websocket.onmessage = (e) => {
+        let data;
+        try { data = JSON.parse(e.data); } catch (_) { return; }
+        if (data.event === 'didReceiveSettings') {
+          applySettingsToForm(data.payload && data.payload.settings);
+        }
+      };
+
+      if (actionInfo.payload && actionInfo.payload.settings) {
+        applySettingsToForm(actionInfo.payload.settings);
+      }
+    }
+
+    const f = fields();
+    f.metric.addEventListener('change', onFieldChange);
+    f.pollerUrl.addEventListener('input', onFieldChange);
+    f.refreshSeconds.addEventListener('input', onFieldChange);
+    applySettingsToForm(DEFAULTS);
+  </script>
+</body>
+
+</html>
