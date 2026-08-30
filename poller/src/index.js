@@ -12,6 +12,7 @@ const EXEC_TIMEOUT_MS = 30000;
 const state = {
   updatedAt: null,
   metrics: [],
+  stats: [],
   raw: null,
   error: null,
   refreshing: false,
@@ -41,7 +42,9 @@ function refresh() {
           return resolve(state);
         }
 
-        state.metrics = parseUsageOutput(parsed.result || '');
+        const { metrics, stats } = parseUsageOutput(parsed.result || '');
+        state.metrics = metrics;
+        state.stats = stats;
         state.raw = parsed.result || null;
         state.updatedAt = new Date().toISOString();
         state.error = null;

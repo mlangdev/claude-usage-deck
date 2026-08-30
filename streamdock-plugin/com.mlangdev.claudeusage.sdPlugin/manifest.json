@@ -22,6 +22,52 @@
       "Tooltip": "Mostra o consumo do Claude Code (sessao ou semana) lido do poller local",
       "UUID": "com.mlangdev.claudeusage.usage",
       "PropertyInspectorPath": "propertyInspector/usage/index.html"
+    },
+    {
+      "Icon": "static/icon.png",
+      "Name": "Claude Reset Countdown",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "static/icon.png",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "Settings": {
+        "metric": "week",
+        "pollerUrl": "http://127.0.0.1:4756/usage",
+        "refreshSeconds": 30
+      },
+      "Controllers": ["Keypad", "Information"],
+      "UserTitleEnabled": false,
+      "SupportedInMultiActions": false,
+      "Tooltip": "Mostra quanto tempo falta para a cota (sessao ou semana) do Claude Code resetar",
+      "UUID": "com.mlangdev.claudeusage.countdown",
+      "PropertyInspectorPath": "propertyInspector/countdown/index.html"
+    },
+    {
+      "Icon": "static/icon.png",
+      "Name": "Claude Stats",
+      "DisableAutomaticStates": true,
+      "States": [
+        {
+          "Image": "static/icon.png",
+          "TitleAlignment": "middle",
+          "FontSize": "13"
+        }
+      ],
+      "Settings": {
+        "window": "24h",
+        "pollerUrl": "http://127.0.0.1:4756/usage",
+        "refreshSeconds": 60
+      },
+      "Controllers": ["Keypad", "Information"],
+      "UserTitleEnabled": false,
+      "SupportedInMultiActions": false,
+      "Tooltip": "Mostra quantos requests/sessoes o Claude Code teve nas ultimas 24h ou 7 dias",
+      "UUID": "com.mlangdev.claudeusage.stats",
+      "PropertyInspectorPath": "propertyInspector/stats/index.html"
     }
   ],
   "SDKVersion": 1,
