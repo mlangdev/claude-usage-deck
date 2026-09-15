@@ -68,6 +68,7 @@ This targets the **StreamDock** plugin SDK (see `plugin/utils/plugin.js` header 
 - Countdown text (in the icon tooltip) is computed client-side from `resetsAtIso`, mirroring `formatCountdown()` from the plugin/dashboard.
 - Must run as a normal (not "run whether user is logged on or not") scheduled task or startup entry — `NotifyIcon` needs an interactive desktop session; see the README's `ClaudeUsageTray` scheduled-task snippet, which mirrors the poller's own auto-start pattern.
 - New tray icons land in Windows' hidden-icons overflow by default — this is OS behavior, not something the script controls; the README tells users to drag them out once.
+- **Deliberately `NotifyIcon`, not a full-size taskbar button.** A minimized `System.Windows.Forms.Form` (`ShowInTaskbar=$true`) was tried instead, to get a bigger icon in the main taskbar row next to real apps. Confirmed via screenshot that Windows renders a window that starts life minimized (never painted in a `Normal` state) as a tiny icon squeezed next to the notification area — indistinguishable from a `NotifyIcon` in size, but less reliable (with two such windows, one would intermittently fail to render at all). Showing the form normally first, forcing a paint (`Update()`/`DoEvents()`), *then* minimizing did not fix this consistently either. Don't re-attempt the taskbar-button route without a new idea for forcing a real DWM thumbnail first.
 
 ### Deploying to a real device (manual, not scripted)
 
