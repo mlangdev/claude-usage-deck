@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>claude-usage-deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1f1e1c;
+    --surface: #262420;
+    --surface-raised: #2d2a25;
+    --track: #3a372f;
+    --border: #3d3a32;
+    --cream: #f4f0e6;
+    --muted: #b8b2a3;
+    --faint: #7d786c;
+    --accent: #da7756;
+    --accent-dim: #8f5340;
+    --warn: #d8a13c;
+    --crit: #c2483a;
+    --font-ui: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    --font-data: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: var(--font-ui);
+    padding: clamp(20px, 4vw, 48px);
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .brand .sub {
+    color: var(--faint);
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 2px;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--faint);
+    flex: none;
+    transition: background 0.3s;
+  }
+  .dot.ok { background: var(--accent); box-shadow: 0 0 0 3px rgba(218, 119, 86, 0.18); }
+  .dot.bad { background: var(--crit); box-shadow: 0 0 0 3px rgba(194, 72, 58, 0.2); }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  #updatedAt { font-family: var(--font-data); }
+
+  button#refreshBtn {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--cream);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  button#refreshBtn:hover { border-color: var(--accent-dim); }
+  button#refreshBtn:active { transform: scale(0.97); }
+  button#refreshBtn:disabled { opacity: 0.5; cursor: default; }
+  button#refreshBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .banner {
+    display: none;
+    background: rgba(194, 72, 58, 0.12);
+    border: 1px solid var(--crit);
+    color: var(--cream);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+  .banner.show { display: block; }
+  .banner code {
+    font-family: var(--font-data);
+    background: rgba(0,0,0,0.25);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  section.group { margin-bottom: 32px; }
+
+  .group-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 12px 2px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  .metric-card .metric-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+
+  .metric-label {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .metric-pct {
+    font-family: var(--font-data);
+    font-size: 26px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .bar-track {
+    height: 7px;
+    background: var(--track);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+  }
+
+  .metric-foot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--faint);
+  }
+
+  .countdown {
+    font-family: var(--font-data);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stat-value {
+    font-family: var(--font-data);
+    font-size: 28px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--cream);
+  }
+
+  .stat-caption {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .stat-sub {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .empty-note {
+    color: var(--faint);
+    font-size: 13px;
+    padding: 4px 2px;
+  }
+
+  details.raw {
+    margin-top: 8px;
+  }
+  details.raw summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+  details.raw pre {
+    margin-top: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: var(--font-data);
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--faint);
+    line-height: 1.6;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="brand"><span class="dot" id="statusDot"></span>claude-usage-deck<span class="sub">painel local</span></div>
+    <div class="meta">
+      <span id="updatedAt">carregando…</span>
+      <button id="refreshBtn" type="button">atualizar agora</button>
+    </div>
+  </header>
+
+  <div class="banner" id="offlineBanner">
+    Não foi possível falar com o poller. Confirme que ele está rodando —
+    <code>cd poller &amp;&amp; npm start</code> — e que esta página foi aberta a partir dele
+    (<code>http://127.0.0.1:4756</code>).
+  </div>
+
+  <section class="group">
+    <p class="group-label">Cota de uso</p>
+    <div class="grid" id="metricsGrid">
+      <p class="empty-note">carregando métricas…</p>
+    </div>
+  </section>
+
+  <section class="group">
+    <p class="group-label">Atividade recente</p>
+    <div class="grid" id="statsGrid">
+      <p class="empty-note">carregando estatísticas…</p>
+    </div>
+  </section>
+
+  <details class="raw" id="rawDetails" hidden>
+    <summary>ver texto original do /usage</summary>
+    <pre id="rawText"></pre>
+  </details>
+
+  <footer>
+    Lê o endpoint local <code>/usage</code> deste mesmo poller a cada 15s — não é um plugin oficial
+    da Anthropic nem da Elgato, só um espelho do comando <code>claude -p "/usage"</code>.
+    Código em <a href="https://github.com/mlangdev/claude-usage-deck" target="_blank" rel="noopener">github.com/mlangdev/claude-usage-deck</a>.
+  </footer>
+
+</div>
+
+<script>
+  const POLL_MS = 15000;
+  const TICK_MS = 1000;
+  const WEEKDAY = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+
+  const els = {
+    dot: document.getElementById('statusDot'),
+    updatedAt: document.getElementById('updatedAt'),
+    refreshBtn: document.getElementById('refreshBtn'),
+    banner: document.getElementById('offlineBanner'),
+    metricsGrid: document.getElementById('metricsGrid'),
+    statsGrid: document.getElementById('statsGrid'),
+    rawDetails: document.getElementById('rawDetails'),
+    rawText: document.getElementById('rawText'),
+  };
+
+  function tierColor(percent) {
+    if (percent >= 90) return 'var(--crit)';
+    if (percent >= 70) return 'var(--warn)';
+    return 'var(--accent)';
+  }
+
+  function formatCountdown(iso) {
+    if (!iso) return null;
+    const ms = new Date(iso).getTime() - Date.now();
+    if (!Number.isFinite(ms)) return null;
+    if (ms <= 0) return 'renovou agora';
+    const totalMinutes = Math.round(ms / 60000);
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+
+  function formatWeekday(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    return `${WEEKDAY[d.getDay()]} ${day}/${month}`;
+  }
+
+  function renderMetrics(metrics) {
+    if (!Array.isArray(metrics) || metrics.length === 0) {
+      els.metricsGrid.innerHTML = '<p class="empty-note">Nenhuma métrica reconhecida ainda — veja o texto original abaixo.</p>';
+      return;
+    }
+
+    els.metricsGrid.innerHTML = metrics.map((m) => {
+      const pct = Math.max(0, Math.min(100, m.percentUsed));
+      const color = tierColor(pct);
+      const countdownText = formatCountdown(m.resetsAtIso) || m.resetsAt || '—';
+      return `
+        <div class="card metric-card">
+          <div class="metric-head">
+            <span class="metric-label">${escapeHtml(m.label)}</span>
+            <span class="metric-pct" style="color:${color}">${pct}%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          <div class="metric-foot">
+            <span>reseta ${escapeHtml(formatWeekday(m.resetsAtIso))}</span>
+            <span class="countdown" data-reset-iso="${m.resetsAtIso || ''}">${countdownText}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderStats(stats) {
+    if (!Array.isArray(stats) || stats.length === 0) {
+      els.statsGrid.innerHTML = '<p class="empty-note">Nenhuma estatística reconhecida ainda.</p>';
+      return;
+    }
+
+    els.statsGrid.innerHTML = stats.map((s) => `
+      <div class="card stat-card">
+        <div class="stat-value">${s.requests}</div>
+        <div class="stat-caption">requests · últimas ${escapeHtml(s.window)}</div>
+        <div class="stat-sub">${s.sessions} sessões</div>
+      </div>`).join('');
+  }
+
+  function escapeHtml(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  function tickCountdowns() {
+    document.querySelectorAll('.countdown[data-reset-iso]').forEach((el) => {
+      const iso = el.getAttribute('data-reset-iso');
+      if (!iso) return;
+      const text = formatCountdown(iso);
+      if (text) el.textContent = text;
+    });
+  }
+
+  async function fetchUsage(force) {
+    els.refreshBtn.disabled = true;
+    try {
+      const res = await fetch(`/usage${force ? '?refresh=1' : ''}`, { cache: 'no-store' });
+      const data = await res.json();
+
+      els.dot.className = 'dot ok';
+      els.banner.classList.remove('show');
+      els.updatedAt.textContent = data.updatedAt
+        ? `atualizado ${new Date(data.updatedAt).toLocaleTimeString('pt-BR')}`
+        : 'sem dados ainda';
+
+      renderMetrics(data.metrics);
+      renderStats(data.stats);
+
+      if (data.raw) {
+        els.rawDetails.hidden = false;
+        els.rawText.textContent = data.raw;
+      }
+    } catch (err) {
+      els.dot.className = 'dot bad';
+      els.banner.classList.add('show');
+      els.updatedAt.textContent = 'desconectado';
+    } finally {
+      els.refreshBtn.disabled = false;
+    }
+  }
+
+  els.refreshBtn.addEventListener('click', () => fetchUsage(true));
+
+  fetchUsage(false);
+  setInterval(() => fetchUsage(false), POLL_MS);
+  setInterval(tickCountdowns, TICK_MS);
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 'use strict';
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { exec } = require('child_process');
 const { parseUsageOutput } = require('./parseUsage');
 
@@ -8,6 +10,8 @@ const PORT = parseInt(process.env.PORT || '4756', 10);
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '300000', 10); // 5 min
 const CLAUDE_BIN = process.env.CLAUDE_BIN || 'claude';
 const EXEC_TIMEOUT_MS = 30000;
+
+const DASHBOARD_HTML = fs.readFileSync(path.join(__dirname, 'dashboard.html'), 'utf8');
 
 const state = {
   updatedAt: null,
@@ -78,6 +82,11 @@ function sendJson(res, statusCode, body) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+  if (url.pathname === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(DASHBOARD_HTML);
+  }
+
   if (url.pathname === '/health') {
     return sendJson(res, 200, { ok: true });
   }
@@ -89,11 +98,11 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, state.error && state.metrics.length === 0 ? 502 : 200, state);
   }
 
-  sendJson(res, 404, { error: 'not found', routes: ['/usage', '/health'] });
+  sendJson(res, 404, { error: 'not found', routes: ['/', '/usage', '/health'] });
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[claude-usage-deck] poller ouvindo em http://127.0.0.1:${PORT}/usage`);
+  console.log(`[claude-usage-deck] painel em http://127.0.0.1:${PORT} · dados em http://127.0.0.1:${PORT}/usage`);
   console.log(`[claude-usage-deck] atualizando a cada ${Math.round(POLL_INTERVAL_MS / 1000)}s via "${CLAUDE_BIN} -p /usage"`);
   refresh();
   setInterval(refresh, POLL_INTERVAL_MS);

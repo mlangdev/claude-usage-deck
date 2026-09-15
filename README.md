@@ -6,7 +6,7 @@ Mostra quanto falta da sua cota de uso do [Claude Code](https://claude.com/claud
 
 O projeto tem duas partes:
 
-1. **`poller/`** — um serviço Node.js local, sem dependências, que roda `claude -p "/usage" --output-format json` periodicamente e expõe o resultado (já interpretado) num endpoint HTTP local. Essa chamada é gratuita: não gasta tokens nem conta como uma mensagem, é só uma consulta de status.
+1. **`poller/`** — um serviço Node.js local, sem dependências, que roda `claude -p "/usage" --output-format json` periodicamente e expõe o resultado (já interpretado) num endpoint HTTP local, além de um painel visual no navegador (`http://127.0.0.1:4756`) — útil pra quem não tem Stream Deck. Essa chamada é gratuita: não gasta tokens nem conta como uma mensagem, é só uma consulta de status.
 2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por várias outras marcas — Redragon Stream Station, Mirabox, etc.) com quatro teclas:
    - **Claude Usage** — gauge circular com o percentual usado (sessão ou semana), cores terracota/âmbar/vermelho conforme o consumo, e um alerta visual (`showAlert`) disparado automaticamente ao cruzar 90%.
    - **Claude Reset Countdown** — quanto tempo falta para a cota escolhida (sessão ou semana) resetar.
@@ -44,7 +44,7 @@ npm install   # não tem dependências de terceiros, mas garante o cache do npm
 npm start
 ```
 
-Isso sobe um servidor em `http://127.0.0.1:4756/usage`. Teste no navegador ou com `curl`:
+Isso sobe um servidor em `http://127.0.0.1:4756`. Abra esse endereço no navegador e você já vê um painel com o consumo, contagem regressiva e estatísticas — útil pra quem não tem um Stream Deck/StreamDock e só quer acompanhar pela tela mesmo. Ele lê o mesmo endpoint JSON, disponível em `http://127.0.0.1:4756/usage`:
 
 ```bash
 curl http://127.0.0.1:4756/usage
