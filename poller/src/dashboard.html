@@ -338,6 +338,13 @@
     return 'var(--accent)';
   }
 
+  function translateLabel(label) {
+    const l = (label || '').toLowerCase();
+    if (l.includes('week')) return 'Semana (todos os modelos)';
+    if (l.includes('session')) return 'Sessão atual';
+    return label;
+  }
+
   function formatCountdown(iso) {
     if (!iso) return null;
     const ms = new Date(iso).getTime() - Date.now();
@@ -373,7 +380,7 @@
       return `
         <div class="card metric-card">
           <div class="metric-head">
-            <span class="metric-label">${escapeHtml(m.label)}</span>
+            <span class="metric-label">${escapeHtml(translateLabel(m.label))}</span>
             <span class="metric-pct" style="color:${color}">${pct}%</span>
           </div>
           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
