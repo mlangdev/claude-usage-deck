@@ -18,6 +18,8 @@ $RefreshMs = 15000
 
 $Palette = @{
   Bg      = '#1f1e1c'
+  Track   = '#3a372f'
+  Cream   = '#f4f0e6'
   Normal  = '#da7756'
   Warn    = '#d8a13c'
   Crit    = '#c2483a'
@@ -30,8 +32,13 @@ function Get-TierColor([int]$Percent) {
   return $Palette.Normal
 }
 
-function New-NumberIcon([string]$Text, [string]$HexColor) {
+# Mirrors the StreamDock plugin's circular gauge (buildGaugeSvg): a dark
+# card, a muted track ring, a tier-colored arc proportional to Percent,
+# and the number in cream at the center. Pass Percent -1 for the
+# loading/offline states (ring stays empty, just the track shows).
+function New-GaugeIcon([string]$Text, [int]$Percent, [string]$TierColor) {
   $size = 64
+  $stroke = 7
   $bmp = New-Object System.Drawing.Bitmap $size, $size
   $g = [System.Drawing.Graphics]::FromImage($bmp)
   $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
@@ -41,17 +48,34 @@ function New-NumberIcon([string]$Text, [string]$HexColor) {
   $bgBrush = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml($Palette.Bg))
   $g.FillEllipse($bgBrush, 1, 1, $size - 2, $size - 2)
 
-  $fontSize = if ($Text.Length -ge 3) { 24 } else { 30 }
+  $inset = ($stroke / 2.0) + 2
+  $arcRect = New-Object System.Drawing.RectangleF $inset, $inset, ($size - 2 * $inset), ($size - 2 * $inset)
+
+  $trackPen = New-Object System.Drawing.Pen([System.Drawing.ColorTranslator]::FromHtml($Palette.Track), $stroke)
+  $g.DrawEllipse($trackPen, $arcRect)
+
+  if ($Percent -gt 0) {
+    $sweep = 360.0 * ([Math]::Min(100, $Percent) / 100.0)
+    $arcPen = New-Object System.Drawing.Pen([System.Drawing.ColorTranslator]::FromHtml($TierColor), $stroke)
+    $arcPen.StartCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $arcPen.EndCap = [System.Drawing.Drawing2D.LineCap]::Round
+    $g.DrawArc($arcPen, $arcRect, -90, $sweep)
+    $arcPen.Dispose()
+  }
+
+  $fontSize = if ($Text.Length -ge 3) { 19 } else { 23 }
   $font = New-Object System.Drawing.Font('Segoe UI', $fontSize, [System.Drawing.FontStyle]::Bold)
-  $fgBrush = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml($HexColor))
+  $textColor = if ($Percent -ge 0) { $Palette.Cream } else { $Palette.Offline }
+  $fgBrush = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]::FromHtml($textColor))
   $sf = New-Object System.Drawing.StringFormat
   $sf.Alignment = [System.Drawing.StringAlignment]::Center
   $sf.LineAlignment = [System.Drawing.StringAlignment]::Center
-  $rect = New-Object System.Drawing.RectangleF(0, 1, $size, $size)
-  $g.DrawString($Text, $font, $fgBrush, $rect, $sf)
+  $textRect = New-Object System.Drawing.RectangleF(0, 1, $size, $size)
+  $g.DrawString($Text, $font, $fgBrush, $textRect, $sf)
 
   $g.Dispose()
   $bgBrush.Dispose()
+  $trackPen.Dispose()
   $fgBrush.Dispose()
   $font.Dispose()
 
@@ -77,12 +101,12 @@ function Format-Countdown([string]$Iso) {
 }
 
 $sessionIcon = New-Object System.Windows.Forms.NotifyIcon
-$sessionIcon.Icon = New-NumberIcon '..' $Palette.Offline
+$sessionIcon.Icon = New-GaugeIcon '..' -1 $Palette.Offline
 $sessionIcon.Text = 'Claude - sessao (carregando)'
 $sessionIcon.Visible = $true
 
 $weekIcon = New-Object System.Windows.Forms.NotifyIcon
-$weekIcon.Icon = New-NumberIcon '..' $Palette.Offline
+$weekIcon.Icon = New-GaugeIcon '..' -1 $Palette.Offline
 $weekIcon.Text = 'Claude - semana (carregando)'
 $weekIcon.Visible = $true
 
@@ -110,19 +134,19 @@ function Update-Icons {
 
     if ($session) {
       $pct = [int]$session.percentUsed
-      $sessionIcon.Icon = New-NumberIcon "$pct" (Get-TierColor $pct)
+      $sessionIcon.Icon = New-GaugeIcon "$pct" $pct (Get-TierColor $pct)
       $countdown = Format-Countdown $session.resetsAtIso
       $sessionIcon.Text = "Sessao atual: $pct%" + $(if ($countdown) { " - reseta em $countdown" } else { '' })
     }
     if ($week) {
       $pct = [int]$week.percentUsed
-      $weekIcon.Icon = New-NumberIcon "$pct" (Get-TierColor $pct)
+      $weekIcon.Icon = New-GaugeIcon "$pct" $pct (Get-TierColor $pct)
       $countdown = Format-Countdown $week.resetsAtIso
       $weekIcon.Text = "Semana: $pct%" + $(if ($countdown) { " - reseta em $countdown" } else { '' })
     }
   } catch {
-    $sessionIcon.Icon = New-NumberIcon '?' $Palette.Offline
-    $weekIcon.Icon = New-NumberIcon '?' $Palette.Offline
+    $sessionIcon.Icon = New-GaugeIcon '?' -1 $Palette.Offline
+    $weekIcon.Icon = New-GaugeIcon '?' -1 $Palette.Offline
     $sessionIcon.Text = 'Claude: poller offline'
     $weekIcon.Text = 'Claude: poller offline'
   }

@@ -12,7 +12,7 @@ The project has three parts (the last two are optional):
    - **Claude Reset Countdown** — how much time is left before the chosen quota (session or week) resets.
    - **Claude Stats** — how many requests and sessions Claude Code had in the last 24h or 7 days.
    - **Claude Reset Day** — which day of the week (and date) the chosen quota (session or week) will reset.
-3. **`tray/`** — a PowerShell script (no dependencies beyond Windows itself) that puts two live icons in the system tray (near the clock), showing the session and week percentages right on the icon, no window needed.
+3. **`tray/`** — a PowerShell script (no dependencies beyond Windows itself) that puts two live icons in the system tray (near the clock) — a small circular gauge just like the plugin's keys, with the session and week percentages at the center — no window needed.
 
 > This is NOT an official Elgato or Anthropic plugin. It's a community-made tool that only reads the public output of the Claude Code CLI's `/usage` command.
 
@@ -109,7 +109,7 @@ The `/usage` text doesn't include a full date (e.g. "Aug 30, 4:09am"), so the po
 
 ## 3. (Optional) Windows system tray icons
 
-If you don't have a Stream Deck/StreamDock (or just want to check usage without opening anything), `tray/claude-usage-tray.ps1` puts two live icons in the system tray — one with the session percentage, one with the week percentage — refreshed every 15s, with color changing by usage tier (same colors as the plugin). Double-click either icon to open the web dashboard; right-click for a "Sair" (quit) option.
+If you don't have a Stream Deck/StreamDock (or just want to check usage without opening anything), `tray/claude-usage-tray.ps1` puts two live icons in the system tray — one with the session percentage, one with the week percentage — drawn as a small circular gauge (same look as the keys: a ring colored by usage tier, with the number at the center), refreshed every 15s. Double-click either icon to open the web dashboard; right-click for a "Sair" (quit) option.
 
 Run it manually (with the poller already running):
 

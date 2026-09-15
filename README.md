@@ -12,7 +12,7 @@ O projeto tem três partes (as duas últimas são opcionais):
    - **Claude Reset Countdown** — quanto tempo falta para a cota escolhida (sessão ou semana) resetar.
    - **Claude Stats** — quantos requests e sessões o Claude Code teve nas últimas 24h ou 7 dias.
    - **Claude Reset Day** — em qual dia da semana (e data) a cota escolhida (sessão ou semana) vai resetar.
-3. **`tray/`** — um script PowerShell (sem dependências além do próprio Windows) que coloca dois ícones vivos na bandeja do sistema (perto do relógio), mostrando a porcentagem de sessão e de semana direto no ícone, sem precisar abrir nada.
+3. **`tray/`** — um script PowerShell (sem dependências além do próprio Windows) que coloca dois ícones vivos na bandeja do sistema (perto do relógio) — um gauge circular igual ao das teclas, com a porcentagem de sessão e de semana no centro — sem precisar abrir nada.
 
 > Este NÃO é um plugin oficial da Elgato nem da Anthropic. É uma ferramenta community-made que só lê a saída pública do comando `/usage` do Claude Code CLI.
 
@@ -109,7 +109,7 @@ O texto do `/usage` não traz uma data completa (ex: "Aug 30, 4:09am"), então o
 
 ## 3. (Opcional) Ícones na bandeja do Windows
 
-Se você não tem Stream Deck/StreamDock (ou só quer ver o consumo sem abrir nada), o `tray/claude-usage-tray.ps1` coloca dois ícones vivos na bandeja do sistema — um com a porcentagem da sessão, outro com a da semana — atualizados a cada 15s, com a cor mudando por faixa de consumo (mesmas cores do plugin). Clique duplo em qualquer um deles abre o painel web; clique direito dá acesso a "Sair".
+Se você não tem Stream Deck/StreamDock (ou só quer ver o consumo sem abrir nada), o `tray/claude-usage-tray.ps1` coloca dois ícones vivos na bandeja do sistema — um com a porcentagem da sessão, outro com a da semana — desenhados como um mini gauge circular (mesma cara das teclas: anel colorido pela faixa de consumo + número no centro), atualizados a cada 15s. Clique duplo em qualquer um deles abre o painel web; clique direito dá acesso a "Sair".
 
 Rodar manualmente (com o poller já rodando):
 
