@@ -4,7 +4,7 @@
 
 Mostra quanto falta da sua cota de uso do [Claude Code](https://claude.com/claude-code) (sessão atual e semana do plano Pro/Max) direto num botão de Stream Deck / Stream Dock — incluindo outras marcas (Redragon, Mirabox, etc.) que rodam o software **StreamDock**.
 
-O projeto tem duas partes:
+O projeto tem três partes (as duas últimas são opcionais):
 
 1. **`poller/`** — um serviço Node.js local, sem dependências, que roda `claude -p "/usage" --output-format json` periodicamente e expõe o resultado (já interpretado) num endpoint HTTP local, além de um painel visual no navegador (`http://127.0.0.1:4756`) — útil pra quem não tem Stream Deck. Essa chamada é gratuita: não gasta tokens nem conta como uma mensagem, é só uma consulta de status.
 2. **`streamdock-plugin/`** — um plugin para o software **StreamDock** (usado por Stream Deck da Elgato e por várias outras marcas — Redragon Stream Station, Mirabox, etc.) com quatro teclas:
@@ -12,6 +12,7 @@ O projeto tem duas partes:
    - **Claude Reset Countdown** — quanto tempo falta para a cota escolhida (sessão ou semana) resetar.
    - **Claude Stats** — quantos requests e sessões o Claude Code teve nas últimas 24h ou 7 dias.
    - **Claude Reset Day** — em qual dia da semana (e data) a cota escolhida (sessão ou semana) vai resetar.
+3. **`tray/`** — um script PowerShell (sem dependências além do próprio Windows) que coloca dois ícones vivos na bandeja do sistema (perto do relógio), mostrando a porcentagem de sessão e de semana direto no ícone, sem precisar abrir nada.
 
 > Este NÃO é um plugin oficial da Elgato nem da Anthropic. É uma ferramenta community-made que só lê a saída pública do comando `/usage` do Claude Code CLI.
 
@@ -106,11 +107,32 @@ Pressionar qualquer uma das teclas força uma atualização imediata (o poller e
 
 O texto do `/usage` não traz uma data completa (ex: "Aug 30, 4:09am"), então o poller assume que a hora mostrada está no mesmo fuso horário da máquina onde ele roda. Se você rodar o poller numa máquina/servidor em outro fuso, o countdown vai ficar errado — nesse caso essa tecla não é recomendada (o gauge e o stats continuam corretos, pois não dependem de fuso horário).
 
+## 3. (Opcional) Ícones na bandeja do Windows
+
+Se você não tem Stream Deck/StreamDock (ou só quer ver o consumo sem abrir nada), o `tray/claude-usage-tray.ps1` coloca dois ícones vivos na bandeja do sistema — um com a porcentagem da sessão, outro com a da semana — atualizados a cada 15s, com a cor mudando por faixa de consumo (mesmas cores do plugin). Clique duplo em qualquer um deles abre o painel web; clique direito dá acesso a "Sair".
+
+Rodar manualmente (com o poller já rodando):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tray\claude-usage-tray.ps1
+```
+
+Pra deixar sempre ativo (inicia sozinho ao logar no Windows), crie uma tarefa agendada:
+
+```powershell
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "CAMINHO\PARA\tray\claude-usage-tray.ps1"'
+$trigger = New-ScheduledTaskTrigger -AtLogOn
+Register-ScheduledTask -TaskName "ClaudeUsageTray" -Action $action -Trigger $trigger -Description "Icones de uso do Claude Code na bandeja"
+```
+
+> Ícones novos costumam nascer escondidos atrás da seta **"^"** de itens ocultos, no canto da bandeja. Clique na seta, depois arraste os dois ícones pra fora dela (ou vá em **Configurações → Personalização → Barra de tarefas → Selecionar quais ícones aparecem**) pra deixá-los sempre visíveis.
+
 ## Limitações conhecidas
 
 - O `/usage` do Claude Code não é uma API pública documentada — é a saída de texto de um comando interativo. O parser (`poller/src/parseUsage.js`) é propositalmente tolerante, mas se a Anthropic mudar o texto do `/usage`, o parsing pode parar de reconhecer as linhas (o endpoint sempre devolve o texto bruto em `raw` pra você conferir).
 - Os números refletem **sessões locais desta máquina** — não incluem uso de outros dispositivos ou do claude.ai (isso é uma limitação do próprio `/usage`, não do poller).
 - Testado com o software **Redragon Stream Station** (rebrand do StreamDock da Mirabox/HotSpot). Deve funcionar em qualquer app baseado no mesmo SDK (procure pastas `.sdPlugin` na instalação), mas pode precisar de ajustes finos de manifest em versões diferentes do software.
+- O `tray/claude-usage-tray.ps1` é **exclusivo pra Windows** (usa WinForms/GDI+ via PowerShell) — o poller e o plugin continuam funcionando normalmente em outros sistemas, só essa parte opcional é Windows-only.
 
 ## Licença
 
